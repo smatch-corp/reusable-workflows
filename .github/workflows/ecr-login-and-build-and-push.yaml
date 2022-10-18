@@ -55,9 +55,9 @@ jobs:
 
           if [ -z "${{ inputs.docker-alias-tag }}" ]
           then
-            echo "DOCKER_TAGS=$ecr_registry_and_repository:${{ inputs.docker-image-tag }},$ecr_registry_and_repository:${{ inputs.docker-alias-tag }}" >> $GITHUB_ENV
-          else
             echo "DOCKER_TAGS=$ecr_registry_and_repository:${{ inputs.docker-image-tag }}" >> $GITHUB_ENV
+          else
+            echo "DOCKER_TAGS=$ecr_registry_and_repository:${{ inputs.docker-image-tag }},$ecr_registry_and_repository:${{ inputs.docker-alias-tag }}" >> $GITHUB_ENV
           fi
 
       - uses: docker/build-push-action@v3

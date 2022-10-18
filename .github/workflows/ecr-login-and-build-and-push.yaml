@@ -19,10 +19,6 @@ on:
         description: 이미지 푸시할 때 사용할 별칭 태그
         required: false
         type: string
-      pull-request-number:
-        description: PR에 대해 실행할 경우, 해당 PR 이슈 번호
-        required: false
-        type: number
 
     secrets:
       AWS_ACCESS_KEY_ID:
@@ -66,24 +62,24 @@ jobs:
           tags: ${{ env.DOCKER_TAGS }}
           build-args: ${{ inputs.docker-build-args }}
       
-      - if: ${{ inputs.pull-request-number }} != 0
+      - if: github.event_name == 'pull_request'
         uses: peter-evans/find-comment@v2
         id: comment
         with:
-          issue-number: ${{ inputs.pull-request-number }}
+          issue-number: ${{ github.event.pull_request.number }}
           comment-author: 'github-actions[bot]'
           body-includes: 도커 이미지가 빌드되었습니다.
 
-      - if: ${{ inputs.pull-request-number }} != 0
+      - if: github.event_name == 'pull_request'
         uses: peter-evans/create-or-update-comment@v2
         with:
           comment-id: ${{ steps.comment.outputs.comment-id }}
-          issue-number: ${{ inputs.pull-request-number }}
+          issue-number: ${{ github.event.pull_request.number }}
           body: |
             도커 이미지가 빌드되었습니다. (`${{ env.DOCKER_TAGS }}`)
           edit-mode: replace
 
-      - if: ${{ inputs.pull-request-number }} != 0
+      - if: github.event_name == 'pull_request'
         uses: actions-ecosystem/action-add-labels@v1
         with:
           labels: preview

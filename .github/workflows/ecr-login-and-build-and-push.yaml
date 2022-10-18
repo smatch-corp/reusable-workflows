@@ -1,0 +1,88 @@
+name: AWS ECR 로그인 및 도커 이미지 빌드 및 푸시
+
+on:
+  workflow_call:
+    inputs:
+      ecr-repository:
+        description: 빌드 후 이미지를 푸시 할 ECR 레지스트리 이름
+        required: true
+        type: string
+      docker-build-args:
+        description: 이미지 빌드 시 --build-args 로 전달할 인자
+        required: false
+        type: string
+      docker-image-tag:
+        description: 이미지 푸시할 때 사용할 태그
+        required: true
+        type: string
+      docker-alias-tag:
+        description: 이미지 푸시할 때 사용할 별칭 태그
+        required: false
+        type: string
+      pull-request-number:
+        description: PR에 대해 실행할 경우, 해당 PR 이슈 번호
+        required: false
+        type: number
+
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        description: 'AWS 액세스 키 ID'
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        description: 'AWS 시크릿 액세스 키'
+        required: true
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - id: ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - uses: docker/setup-buildx-action@v2
+
+      - run: |
+          ecr_registry_and_repository=${{ steps.ecr.outputs.registry }}/${{ inputs.ecr-repository }}
+
+          if [ -z "${{ inputs.docker-alias-tag }}" ]
+            echo "DOCKER_TAGS=$ecr_registry_and_repository:${{ inputs.docker-image-tag }},$ecr_registry_and_repository:${{ inputs.docker-alias-tag }}" >> $GITHUB_ENV
+          else
+            echo "DOCKER_TAGS=$ecr_registry_and_repository:${{ inputs.docker-image-tag }}" >> $GITHUB_ENV
+          fi
+
+      - uses: docker/build-push-action@v3
+        with:
+          push: true
+          tags: ${{ env.DOCKER_TAGS }}
+          build-args: ${{ inputs.docker-build-args }}
+      
+      - if: ${{ inputs.pull-request-number }} != 0
+        uses: peter-evans/find-comment@v2
+        id: comment
+        with:
+          issue-number: ${{ inputs.pull-request-number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: 도커 이미지가 빌드되었습니다.
+
+      - if: ${{ inputs.pull-request-number }} != 0
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          comment-id: ${{ steps.comment.outputs.comment-id }}
+          issue-number: ${{ inputs.pull-request-number }}
+          body: |
+            도커 이미지가 빌드되었습니다. (`${{ env.DOCKER_TAGS }}`)
+          edit-mode: replace
+
+      - if: ${{ inputs.pull-request-number }} != 0
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          labels: preview

@@ -54,6 +54,7 @@ jobs:
           ecr_registry_and_repository=${{ steps.ecr.outputs.registry }}/${{ inputs.ecr-repository }}
 
           if [ -z "${{ inputs.docker-alias-tag }}" ]
+          then
             echo "DOCKER_TAGS=$ecr_registry_and_repository:${{ inputs.docker-image-tag }},$ecr_registry_and_repository:${{ inputs.docker-alias-tag }}" >> $GITHUB_ENV
           else
             echo "DOCKER_TAGS=$ecr_registry_and_repository:${{ inputs.docker-image-tag }}" >> $GITHUB_ENV

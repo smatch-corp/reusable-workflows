@@ -11,12 +11,12 @@ on:
         description: 이미지 빌드 시 --build-args 로 전달할 인자
         required: false
         type: string
-      docker-image-tag:
-        description: 이미지 푸시할 때 사용할 태그
+      image-tag:
+        description: 이미지 푸시할 때 사용할 이미지 태그
         required: true
         type: string
-      docker-alias-tag:
-        description: 이미지 푸시할 때 사용할 별칭 태그
+      alias-tag:
+        description: 이미지 푸시할 때 보조로 사용할 이미지 태그
         required: false
         type: string
 
@@ -46,14 +46,14 @@ jobs:
 
       - uses: docker/setup-buildx-action@v2
 
-      - run: |
+      - run: |      
           ecr_registry_and_repository=${{ steps.ecr.outputs.registry }}/${{ inputs.ecr-repository }}
 
-          if [ -z "${{ inputs.docker-alias-tag }}" ]
+          if [ -z "${{ inputs.alias-tag }}" ]
           then
-            echo "DOCKER_TAGS=$ecr_registry_and_repository:${{ inputs.docker-image-tag }}" >> $GITHUB_ENV
+            echo "DOCKER_TAGS=$ecr_registry_and_repository:${{ inputs.image-tag }}" >> $GITHUB_ENV
           else
-            echo "DOCKER_TAGS=$ecr_registry_and_repository:${{ inputs.docker-image-tag }},$ecr_registry_and_repository:${{ inputs.docker-alias-tag }}" >> $GITHUB_ENV
+            echo "DOCKER_TAGS=$ecr_registry_and_repository:${{ inputs.image-tag }},$ecr_registry_and_repository:${{ inputs.alias-tag }}" >> $GITHUB_ENV
           fi
 
       - uses: docker/build-push-action@v3

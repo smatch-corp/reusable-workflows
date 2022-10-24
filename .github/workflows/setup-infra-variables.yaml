@@ -1,0 +1,47 @@
+name: 인프라 환경 변수 설정
+
+on:
+  workflow_call:
+    outputs:
+      image-tag:
+        description: 이미지 빌드 시 사용할 이미지 태그
+        value: ${{ jobs.setup-infra-variables.outputs.image-tag }}
+      alias-tag:
+        description: 이미지 빌드 시 보조로 사용할 이미지 태그
+        value: ${{ jobs.setup-infra-variables.outputs.alias-tag }}
+      environment:
+        value: ${{ jobs.setup-infra-variables.outputs.environment }}
+
+jobs:
+  setup-infra-variables:
+    runs-on: ubuntu-latest
+
+    steps:
+      - if: endsWith(github.ref, '/test')
+        run: |
+          echo "IMAGE_TAG=canary-${GITHUB_SHA::8}" >> $GITHUB_ENV
+          echo "ALIAS_TAG=test" >> $GITHUB_ENV
+          echo "ENVIRONMENT=test" >> $GITHUB_ENV
+
+      - if: github.event_name == 'pull_request'
+        run: |
+          echo "IMAGE_TAG=canary-${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
+          echo "ALIAS_TAG=preview-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+          echo "ENVIRONMENT=test" >> $GITHUB_ENV
+
+      - if: endsWith(github.ref, '/main')
+        run: |
+          echo "IMAGE_TAG=canary-${GITHUB_SHA::8}" >> $GITHUB_ENV
+          echo "ALIAS_TAG=stage" >> $GITHUB_ENV
+          echo "ENVIRONMENT=stage" >> $GITHUB_ENV
+
+      - if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          echo "IMAGE_TAG=canary-${GITHUB_SHA::8}" >> $GITHUB_ENV
+          echo "ALIAS_TAG=latest" >> $GITHUB_ENV
+          echo "ENVIRONMENT=prod" >> $GITHUB_ENV
+    
+    outputs:
+      image-tag: ${{ env.IMAGE_TAG }}
+      alias-tag: ${{ env.ALIAS_TAG }}
+      environment: ${{ env.ENVIRONMENT }}

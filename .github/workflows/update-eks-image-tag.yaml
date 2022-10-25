@@ -20,6 +20,10 @@ on:
         required: true
         type: string 
 
+    secrets:
+      PERSONAL_TOKEN:
+        required: true
+
 jobs:
   update-eks-image-tag:
     runs-on: ubuntu-latest

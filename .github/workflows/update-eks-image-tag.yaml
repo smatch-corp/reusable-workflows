@@ -50,6 +50,7 @@ jobs:
           ACTOR_EMAIL: ${{ steps.get-email.outputs.result }}
           IMAGE_TAG: ${{ inputs.image-tag }}
           VALUE_FILE: ${{ inputs.values-file }}
+          ENVIRONMENT: ${{ inputs.environment }}
         working-directory: ${{ inputs.chart-path }}
         run: |
           git config user.name "$ACTOR_NAME"

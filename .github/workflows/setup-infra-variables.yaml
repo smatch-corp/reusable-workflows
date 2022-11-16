@@ -17,27 +17,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: rlespinasse/github-slug-action@v4
+
       - if: endsWith(github.ref, '/test')
         run: |
-          echo "IMAGE_TAG=canary-${GITHUB_SHA::8}" >> $GITHUB_ENV
+          echo "IMAGE_TAG=canary-$GITHUB_SHA_SHORT" >> $GITHUB_ENV
           echo "ALIAS_TAG=test" >> $GITHUB_ENV
           echo "ENVIRONMENT=test" >> $GITHUB_ENV
 
       - if: github.event_name == 'pull_request'
         run: |
-          echo "IMAGE_TAG=canary-${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
+          echo "IMAGE_TAG=canary-$GITHUB_EVENT_PULL_REQUEST_HEAD_SHA_SHORT" >> $GITHUB_ENV
           echo "ALIAS_TAG=preview-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
           echo "ENVIRONMENT=test" >> $GITHUB_ENV
 
       - if: endsWith(github.ref, '/main')
         run: |
-          echo "IMAGE_TAG=canary-${GITHUB_SHA::8}" >> $GITHUB_ENV
+          echo "IMAGE_TAG=canary-$GITHUB_SHA_SHORT" >> $GITHUB_ENV
           echo "ALIAS_TAG=stage" >> $GITHUB_ENV
           echo "ENVIRONMENT=stage" >> $GITHUB_ENV
 
       - if: startsWith(github.ref, 'refs/tags/v')
         run: |
-          echo "IMAGE_TAG=canary-${GITHUB_SHA::8}" >> $GITHUB_ENV
+          echo "IMAGE_TAG=canary-$GITHUB_SHA_SHORT" >> $GITHUB_ENV
           echo "ALIAS_TAG=latest" >> $GITHUB_ENV
           echo "ENVIRONMENT=prod" >> $GITHUB_ENV
     

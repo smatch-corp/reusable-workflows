@@ -27,7 +27,7 @@ on:
         required: true
 
 jobs:
-  update-eks-image-tag:
+  cdk-deploy:
     runs-on: ubuntu-latest
 
     env:

@@ -1,0 +1,84 @@
+name: AWS CDK 배포
+
+on:
+  workflow_call:
+    inputs:
+      base-stack-name:
+        description: 기본 AWS CDK 스택 이름
+        required: true
+        type: string
+      environment:
+        description: 배포 환경 구분
+        required: true
+        type: string 
+      image-tag:
+        description: 배포에 사용할 이미지 태그
+        required: true
+        type: string 
+
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        description: 'AWS 액세스 키 ID'
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        description: 'AWS 시크릿 액세스 키'
+        required: true
+      PERSONAL_TOKEN:
+        required: true
+
+jobs:
+  update-eks-image-tag:
+    runs-on: ubuntu-latest
+
+    env:
+      STACK_NAME: ${{ inputs.base-stack-name }}-${{ inputs.environment }}
+      IMAGE_TAG: ${{ inputs.image-tag }}
+
+    steps:
+      - if: github.event_name == 'pull_request'
+        run: |
+          echo "PR_NUMBER=${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+          echo "STACK_NAME=${{ inputs.base-stack-name }}-pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+
+      - uses: bobheadxi/deployments@v0.5.2
+        id: deployment
+        with:
+          step: start
+          token: ${{ secrets.PERSONAL_TOKEN }}
+          env: ${{ env.STACK_NAME }}
+          ref: ${{ github.head_ref }}
+          no_override: false
+          transient: true
+
+      - uses: actions/checkout@v3 
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - working-directory: ./cdk
+        run: |
+          yarn && yarn cdk synth && \
+          yarn cdk deploy --app 'cdk.out/' $STACK_NAME \
+            --require-approval never \
+            --outputs-file ./cdk-outputs.json
+
+      - uses: sergeysova/jq-action@v2
+        id: deploy-url
+        with:
+          cmd: "jq '.\"${{ env.STACK_NAME }}\".deployUrl' ./cdk/cdk-outputs.json -r"
+
+      - uses: bobheadxi/deployments@v0.5.2
+        if: always()
+        with:
+          step: finish
+          token: ${{ secrets.PERSONAL_TOKEN }}
+          status: ${{ job.status }}
+          deployment_id: ${{ steps.deployment.outputs.deployment_id }}
+          env_url: ${{ steps.deploy-url.outputs.value }}

@@ -40,15 +40,13 @@ jobs:
           echo "PR_NUMBER=${{ github.event.pull_request.number }}" >> $GITHUB_ENV
           echo "STACK_NAME=${{ inputs.base-stack-name }}-pr-${{ github.event.pull_request.number }}" >> $GITHUB_ENV
 
-      - uses: bobheadxi/deployments@v0.5.2
+      - uses: bobheadxi/deployments@v1
         id: deployment
         with:
           step: start
           token: ${{ secrets.PERSONAL_TOKEN }}
           env: ${{ env.STACK_NAME }}
           ref: ${{ github.head_ref }}
-          no_override: false
-          transient: true
 
       - uses: actions/checkout@v3 
 
@@ -74,11 +72,12 @@ jobs:
         with:
           cmd: "jq '.\"${{ env.STACK_NAME }}\".deployUrl' ./cdk/cdk-outputs.json -r"
 
-      - uses: bobheadxi/deployments@v0.5.2
+      - uses: bobheadxi/deployments@v1
         if: always()
         with:
           step: finish
           token: ${{ secrets.PERSONAL_TOKEN }}
           status: ${{ job.status }}
+          env: ${{ steps.deployment.outputs.env }}
           deployment_id: ${{ steps.deployment.outputs.deployment_id }}
           env_url: ${{ steps.deploy-url.outputs.value }}

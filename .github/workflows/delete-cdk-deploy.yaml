@@ -1,0 +1,51 @@
+name: AWS CDK 배포 삭제
+
+on:
+  workflow_call:
+    inputs:
+      base-stack-name:
+        description: 기본 AWS CDK 스택 이름
+        required: true
+        type: string
+
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        description: 'AWS 액세스 키 ID'
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        description: 'AWS 시크릿 액세스 키'
+        required: true
+      PERSONAL_TOKEN:
+        required: true
+
+jobs:
+  delete-cdk-deploy:
+    runs-on: ubuntu-latest
+
+
+    steps:
+      - uses: actions/checkout@v3 
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - working-directory: ./cdk
+        env:
+          STACK_NAME: ${{ inputs.base-stack-name }}-pr-${{ github.event.pull_request.number }}
+        run: |
+          yarn && yarn cdk synth && \
+          yarn cdk destroy $STACK_NAME --require-approval never
+
+      - uses: bobheadxi/deployments@v1
+        if: always()
+        with:
+          step: delete-env
+          token: ${{ secrets.PERSONAL_TOKEN }}
+          env: ${{ env.STACK_NAME }}

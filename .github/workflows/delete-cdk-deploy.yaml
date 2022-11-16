@@ -43,7 +43,7 @@ jobs:
       - working-directory: ./cdk
         run: |
           yarn && yarn cdk synth && \
-          yarn cdk destroy $STACK_NAME --require-approval never
+          yarn cdk destroy $STACK_NAME --force
 
       - uses: bobheadxi/deployments@v1
         if: always()

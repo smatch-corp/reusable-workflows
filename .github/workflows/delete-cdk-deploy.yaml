@@ -22,6 +22,10 @@ jobs:
   delete-cdk-deploy:
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+      packages: read
+
     env:
       STACK_NAME: ${{ inputs.base-stack-name }}-pr-${{ github.event.pull_request.number }}
       PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -33,6 +37,9 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18
+          cache: 'npm'
+          cache-dependency-path: cdk/package-lock.json
+          registry-url: 'https://npm.pkg.github.com'
 
       - uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -42,8 +49,9 @@ jobs:
 
       - working-directory: ./cdk
         run: |
-          yarn && yarn cdk synth && \
-          yarn cdk destroy $STACK_NAME --force
+          npm i && \
+          npx cdk synth && \
+          npx cdk destroy $STACK_NAME --force
 
       - uses: bobheadxi/deployments@v1
         if: always()

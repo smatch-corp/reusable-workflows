@@ -51,13 +51,12 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
         run: |
-          npm i && \
-          npx cdk synth && \
+          npm i
           npx cdk destroy $STACK_NAME --force
 
       - uses: bobheadxi/deployments@v1
         if: always()
         with:
-          step: delete-env
+          step: deactivate-env
           token: ${{ secrets.PERSONAL_TOKEN }}
           env: ${{ env.STACK_NAME }}

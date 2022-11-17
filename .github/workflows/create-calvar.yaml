@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  update-eks-image-tag:
+  create-calvar:
     runs-on: ubuntu-latest
 
     steps:

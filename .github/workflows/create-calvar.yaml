@@ -2,6 +2,7 @@ name: CalVar 태그 생성
 
 on:
   workflow_call:
+  workflow_dispatch:
 
 jobs:
   update-eks-image-tag:

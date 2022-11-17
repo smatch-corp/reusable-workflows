@@ -61,7 +61,6 @@ jobs:
           push: true
           tags: ${{ env.DOCKER_TAGS }}
           build-args: |
-            SMATCH_CORP_CI=true
             ${{ inputs.docker-build-args }}
       
       - if: github.event_name == 'pull_request'

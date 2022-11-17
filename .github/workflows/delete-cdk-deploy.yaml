@@ -48,6 +48,8 @@ jobs:
           aws-region: ap-northeast-2
 
       - working-directory: ./cdk
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
         run: |
           npm i && \
           npx cdk synth && \

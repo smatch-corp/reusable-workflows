@@ -1,0 +1,48 @@
+name: CalVar 태그 생성
+
+on:
+  workflow_call:
+
+jobs:
+  update-eks-image-tag:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3 
+        with:
+          fetch-depth: 10
+
+      - id: get-email
+        uses: actions/github-script@v6
+        with:
+          result-encoding: string
+          script: |
+            const { data } = await github.rest.users.getByUsername({
+              username: context.actor,
+            });
+
+            return data.email;
+
+      - env:
+          ACTOR_NAME: ${{ github.actor }}
+          ACTOR_EMAIL: ${{ steps.get-email.outputs.result }}
+        working-directory: ${{ inputs.chart-path }}
+        run: |
+          set -e
+
+          git config user.name "$ACTOR_NAME"
+          git config user.email "$ACTOR_EMAIL"
+
+          VERSION_BASE="${VERSION_BASE:-$(date -u "+v%Y.%m.%d")}"
+
+          BUILD_NUM=$((${1:-${BUILD_NUM:-0}}))
+          while true ; do
+            VERSION="${VERSION_BASE}.${BUILD_NUM}"
+            if [[ -z "$(git tag | grep "${VERSION}")" ]]; then
+              break
+            fi
+            BUILD_NUM=$((BUILD_NUM +1))
+          done
+
+          git tag "${VERSION}"
+          git push origin --tags

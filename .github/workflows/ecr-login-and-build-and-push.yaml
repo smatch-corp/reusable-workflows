@@ -60,7 +60,8 @@ jobs:
         with:
           push: true
           tags: ${{ env.DOCKER_TAGS }}
-          build-args: ${{ inputs.docker-build-args }}
+          build-args: |
+            ${{ inputs.docker-build-args }}
       
       - if: github.event_name == 'pull_request'
         uses: peter-evans/find-comment@v2

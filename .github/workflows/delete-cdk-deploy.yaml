@@ -55,8 +55,7 @@ jobs:
           npx cdk destroy $STACK_NAME --force
 
       - uses: bobheadxi/deployments@v1
-        if: always()
         with:
-          step: deactivate-env
+          step: delete-env
           token: ${{ secrets.PERSONAL_TOKEN }}
           env: ${{ env.STACK_NAME }}

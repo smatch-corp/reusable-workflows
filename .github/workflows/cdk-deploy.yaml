@@ -32,7 +32,7 @@ on:
 
 jobs:
   cdk-deploy:
-    if: ${{ !(endsWith(github.ref, '/main') && startsWith(github.event.head_commit.message, 'chore: release v')) }}
+    if: "${{ !(endsWith(github.ref, '/main') && startsWith(github.event.head_commit.message, 'chore: release v')) }}"
 
     runs-on: ubuntu-latest
 

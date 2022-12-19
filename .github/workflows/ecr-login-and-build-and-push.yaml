@@ -36,7 +36,7 @@ jobs:
   build-and-push:
     if: "${{ !(endsWith(github.ref, '/main') && startsWith(github.event.head_commit.message, 'chore: release v')) }}"
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-8-cores
 
     steps:
       - uses: actions/checkout@v3

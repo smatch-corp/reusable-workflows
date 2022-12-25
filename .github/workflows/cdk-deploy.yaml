@@ -14,24 +14,35 @@ on:
       environment:
         description: 배포 환경 구분
         required: true
-        type: string 
+        type: string
       image-tag:
         description: 배포에 사용할 이미지 태그
         required: true
-        type: string 
+        type: string
+      timeout-minutes:
+        description: 작업의 타임아웃 시간 (분)
+        required: false
+        type: number
+        default: 30
 
     secrets:
       AWS_ACCESS_KEY_ID:
-        description: 'AWS 액세스 키 ID'
+        description: "AWS 액세스 키 ID"
         required: true
       AWS_SECRET_ACCESS_KEY:
-        description: 'AWS 시크릿 액세스 키'
+        description: "AWS 시크릿 액세스 키"
         required: true
       PERSONAL_TOKEN:
         required: true
 
 jobs:
   cdk-deploy:
+    strategy:
+      matrix:
+        timeout-minutes:
+          - ${{ inputs.timeout-minutes }}
+    timeout-minutes: ${{ matrix.timeout-minutes }}
+
     if: "${{ !(endsWith(github.ref, '/main') && startsWith(github.event.head_commit.message, 'chore: release v')) }}"
 
     runs-on: ubuntu-latest
@@ -58,14 +69,14 @@ jobs:
           env: ${{ env.STACK_NAME }}
           ref: ${{ github.head_ref }}
 
-      - uses: actions/checkout@v3 
+      - uses: actions/checkout@v3
 
       - uses: actions/setup-node@v3
         with:
           node-version: 18
-          cache: 'npm'
+          cache: "npm"
           cache-dependency-path: cdk/package-lock.json
-          registry-url: 'https://npm.pkg.github.com'
+          registry-url: "https://npm.pkg.github.com"
 
       - uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -86,7 +97,7 @@ jobs:
       - uses: sergeysova/jq-action@v2
         id: deploy-url
         with:
-          cmd: "jq '.\"${{ env.STACK_NAME }}\".deployUrl' ./cdk/cdk-outputs.json -r"
+          cmd: 'jq ''."${{ env.STACK_NAME }}".deployUrl'' ./cdk/cdk-outputs.json -r'
 
       - uses: bobheadxi/deployments@v1
         if: always()

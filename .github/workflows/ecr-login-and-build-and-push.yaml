@@ -23,17 +23,28 @@ on:
         description: 이미지 푸시할 때 보조로 사용할 이미지 태그
         required: false
         type: string
+      timeout-minutes:
+        description: 작업의 타임아웃 시간 (분)
+        required: false
+        type: number
+        default: 30
 
     secrets:
       AWS_ACCESS_KEY_ID:
-        description: 'AWS 액세스 키 ID'
+        description: "AWS 액세스 키 ID"
         required: true
       AWS_SECRET_ACCESS_KEY:
-        description: 'AWS 시크릿 액세스 키'
+        description: "AWS 시크릿 액세스 키"
         required: true
 
 jobs:
   build-and-push:
+    strategy:
+      matrix:
+        timeout-minutes:
+          - ${{ inputs.timeout-minutes }}
+    timeout-minutes: ${{ matrix.timeout-minutes }}
+
     if: "${{ !(endsWith(github.ref, '/main') && startsWith(github.event.head_commit.message, 'chore: release v')) }}"
 
     runs-on: ubuntu-latest-8-cores
@@ -52,7 +63,7 @@ jobs:
 
       - uses: docker/setup-buildx-action@v2
 
-      - run: |      
+      - run: |
           ecr_registry_and_repository=${{ steps.ecr.outputs.registry }}/${{ inputs.ecr-repository }}
 
           if [ -z "${{ inputs.alias-tag }}" ]
@@ -69,13 +80,13 @@ jobs:
           build-args: ${{ inputs.docker-build-args }}
           # cache-from: type=gha
           # cache-to: type=gha,mode=max
-      
+
       - if: github.event_name == 'pull_request'
         uses: peter-evans/find-comment@v2
         id: comment
         with:
           issue-number: ${{ github.event.pull_request.number }}
-          comment-author: 'github-actions[bot]'
+          comment-author: "github-actions[bot]"
           body-includes: 도커 이미지가 빌드되었습니다.
 
       - if: github.event_name == 'pull_request'

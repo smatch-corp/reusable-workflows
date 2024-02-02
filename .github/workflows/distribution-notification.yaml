@@ -6,12 +6,18 @@ on:
       team:
         description: "팀명 (ex. Front-End, Back-End, Core)"
         type: string
+        required: true
+        default: 테스트 팀
       service-name:
         description: "서비스명 (ex. 스매치, 스매치어드민, 패스트매치)"
         type: string
+        required: true
+        default: 테스트 서비스
       environment:
         description: "배포 환경 (test, stage, prod)"
         type: string
+        required: true
+        default: 테스트 환경
 
     secrets:
       SLACK_DISTRIBUTION_NOTIFICATION_WEBHOOK_URL:

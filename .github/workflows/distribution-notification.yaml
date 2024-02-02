@@ -39,4 +39,4 @@ jobs:
               "environment": ${{ inputs.environment }}
             }
         env:
-          SLACK_DISTRIBUTION_NOTIFICATION_WEBHOOK_URL: ${{ secrets.SLACK_DISTRIBUTION_NOTIFICATION_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DISTRIBUTION_NOTIFICATION_WEBHOOK_URL }}

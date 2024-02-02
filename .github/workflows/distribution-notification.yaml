@@ -1,0 +1,36 @@
+name: 배포 알리미
+
+on:
+  workflow_call:
+    inputs:
+      team:
+        description: "팀명 (ex. Front-End, Back-End, Core)"
+        type: string
+      service-name:
+        description: "서비스명 (ex. 스매치, 스매치어드민, 패스트매치)"
+        type: string
+      environment:
+        description: "배포 환경 (test, stage, prod)"
+        type: string
+
+    secrets:
+      SLACK_DISTRIBUTION_NOTIFICATION_WEBHOOK_URL:
+        description: "Slack 웹훅 주소"
+        required: true
+
+jobs:
+  distribution-notification:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send custom JSON data to Slack workflow
+        id: slack-notify
+        uses: slackapi/slack-github-action@v1.25.0
+        with:
+          payload: |
+            {
+              "team": ${{ inputs.team }}
+              "serviceName": ${{ inputs.service-name }}
+              "environment": ${{ inputs.environment }}
+            }
+        env:
+          SLACK_DISTRIBUTION_NOTIFICATION_WEBHOOK_URL: ${{ secrets.SLACK_DISTRIBUTION_NOTIFICATION_WEBHOOK_URL }}

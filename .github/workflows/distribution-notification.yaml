@@ -34,9 +34,9 @@ jobs:
         with:
           payload: |
             {
-              "team": ${{ inputs.team }}
-              "serviceName": ${{ inputs.service-name }}
-              "environment": ${{ inputs.environment }}
+              "team": "${{ inputs.team }}",
+              "serviceName": "${{ inputs.service-name }}",
+              "environment": "${{ inputs.environment }}"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DISTRIBUTION_NOTIFICATION_WEBHOOK_URL }}

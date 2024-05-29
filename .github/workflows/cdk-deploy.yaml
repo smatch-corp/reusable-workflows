@@ -92,7 +92,8 @@ jobs:
           npx cdk synth && \
           npx cdk deploy --app 'cdk.out/' $STACK_NAME \
             --require-approval never \
-            --outputs-file ./cdk-outputs.json
+            --outputs-file ./cdk-outputs.json \
+            --method=direct
 
       - uses: sergeysova/jq-action@v2
         id: deploy-url

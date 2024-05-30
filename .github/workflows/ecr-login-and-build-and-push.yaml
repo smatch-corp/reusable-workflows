@@ -73,6 +73,18 @@ jobs:
             echo "DOCKER_TAGS=$ecr_registry_and_repository:${{ inputs.image-tag }},$ecr_registry_and_repository:${{ inputs.alias-tag }}" >> $GITHUB_ENV
           fi
 
+      - uses: actions/cache@v4
+        with:
+          # See here for caching with `pnpm` https://github.com/actions/cache/blob/main/examples.md#node---pnpm or you can leverage caching with actions/setup-node https://github.com/actions/setup-node
+          path: |
+            ~/.pnpm-store
+            ${{ github.workspace }}/.next/cache
+          # Generate a new cache whenever packages or source files change.
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
+          # If source files changed but packages didn't, rebuild from a prior cache.
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-
+
       - uses: docker/build-push-action@v3
         with:
           push: true
@@ -80,7 +92,7 @@ jobs:
           build-args: ${{ inputs.docker-build-args }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      
+
       - if: github.event_name == 'pull_request'
         uses: peter-evans/find-comment@v2
         id: comment

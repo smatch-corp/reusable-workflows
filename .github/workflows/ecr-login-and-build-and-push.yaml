@@ -11,6 +11,16 @@ on:
         description: 빌드 후 이미지를 푸시 할 ECR 레지스트리 이름
         required: true
         type: string
+      dockerfile:
+        description: Dockerfile 경로
+        required: false
+        type: string
+        default: Dockerfile
+      build-context:
+        description: Docker 빌드 컨텍스트 경로
+        required: false
+        type: string
+        default: .
       docker-build-args:
         description: 이미지 빌드 시 --build-args 로 전달할 인자
         required: false
@@ -73,10 +83,27 @@ jobs:
             echo "DOCKER_TAGS=$ecr_registry_and_repository:${{ inputs.image-tag }},$ecr_registry_and_repository:${{ inputs.alias-tag }}" >> $GITHUB_ENV
           fi
 
+          # Dockerfile과 build-context 기본값 설정
+          DOCKERFILE="${{ inputs.dockerfile }}"
+          BUILD_CONTEXT="${{ inputs.build-context }}"
+          
+          if [ -z "$DOCKERFILE" ]; then
+            DOCKERFILE="Dockerfile"
+          fi
+          
+          if [ -z "$BUILD_CONTEXT" ]; then
+            BUILD_CONTEXT="."
+          fi
+          
+          echo "DOCKERFILE=$DOCKERFILE" >> $GITHUB_ENV
+          echo "BUILD_CONTEXT=$BUILD_CONTEXT" >> $GITHUB_ENV
+
       - uses: docker/build-push-action@v5
         with:
           push: true
           tags: ${{ env.DOCKER_TAGS }}
+          file: ${{ env.DOCKERFILE }}
+          context: ${{ env.BUILD_CONTEXT }}
           build-args: ${{ inputs.docker-build-args }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

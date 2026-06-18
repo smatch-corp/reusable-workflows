@@ -60,9 +60,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: aws-actions/configure-aws-credentials@v4
+      - uses: aws-actions/configure-aws-credentials@v5
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -71,7 +71,7 @@ jobs:
       - id: ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v4
 
       - run: |
           ecr_registry_and_repository=${{ steps.ecr.outputs.registry }}/${{ inputs.ecr-repository }}
@@ -98,7 +98,7 @@ jobs:
           echo "DOCKERFILE=$DOCKERFILE" >> $GITHUB_ENV
           echo "BUILD_CONTEXT=$BUILD_CONTEXT" >> $GITHUB_ENV
 
-      - uses: docker/build-push-action@v5
+      - uses: docker/build-push-action@v7
         with:
           push: true
           tags: ${{ env.DOCKER_TAGS }}
@@ -109,7 +109,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - if: github.event_name == 'pull_request'
-        uses: peter-evans/find-comment@v2
+        uses: peter-evans/find-comment@v4
         id: comment
         with:
           issue-number: ${{ github.event.pull_request.number }}
@@ -117,7 +117,7 @@ jobs:
           body-includes: 도커 이미지가 빌드되었습니다.
 
       - if: github.event_name == 'pull_request'
-        uses: peter-evans/create-or-update-comment@v2
+        uses: peter-evans/create-or-update-comment@v5
         with:
           comment-id: ${{ steps.comment.outputs.comment-id }}
           issue-number: ${{ github.event.pull_request.number }}
@@ -126,6 +126,6 @@ jobs:
           edit-mode: replace
 
       - if: github.event_name == 'pull_request'
-        uses: actions-ecosystem/action-add-labels@v1
-        with:
-          labels: preview
+        run: gh pr edit ${{ github.event.pull_request.number }} --repo ${{ github.repository }} --add-label preview
+        env:
+          GH_TOKEN: ${{ github.token }}
